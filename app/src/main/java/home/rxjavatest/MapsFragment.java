@@ -9,6 +9,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import com.directions.route.AbstractRouting;
 import com.directions.route.Route;
@@ -25,6 +28,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.patloew.rxlocation.RxLocation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +47,8 @@ public class MapsFragment extends Fragment {
     public Context context;
 
     private CurrentLocationRX currentLocationRX;
+    EditCoordinate ec;
+
 
     private List<Polyline> polylines = new ArrayList<>();
     private static final int[] COLORS = new int[]{R.color.colorAccent,
@@ -55,12 +61,17 @@ public class MapsFragment extends Fragment {
 
     @BindView(R2.id.mapView)
     MapView mapView;
+    @BindView(R2.id.TV)
+    TextView tv;
+    @BindView(R2.id.button)
+    Button button;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = getActivity();
         setRetainInstance(true);
+
     }
 
     @Override
@@ -83,17 +94,17 @@ public class MapsFragment extends Fragment {
 
         currentLocationRX = new CurrentLocationRX(activity, location -> plotMarker1(location.getLatitude(), location.getLongitude()));
 
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                parseLocation(ec.getLat(),ec.getLong());
+            }
+        });
+
     }
 
     private void initGoogleMap() {
 
-        googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        UiSettings myUiSettings = googleMap.getUiSettings();
-        myUiSettings.setZoomControlsEnabled(true);
-
-        googleMap.setOnCameraMoveListener(() -> zoom = googleMap.getCameraPosition().zoom);
-
-//        googleMap.setOnMapClickListener(latLng -> plotMarker1(latLng.latitude, latLng.longitude));
 
     }
 
@@ -224,4 +235,14 @@ public class MapsFragment extends Fragment {
         currentLocationRX.removeUpdateLocation();
         super.onDestroy();
     }
+
+    public void parseLocation (double latitude, double longitude){
+        currentLocationRX.getLocation(latitude,longitude)
+                         .doOnNext(address -> Log.d("TAG",address.getPremises()))
+                         .map(address -> address.getAddressLine(0))
+                         .subscribe(s -> tv.setText(s),throwable -> Log.e("EXEPTION", "Exeption"));
+
+    }
+
+
 }

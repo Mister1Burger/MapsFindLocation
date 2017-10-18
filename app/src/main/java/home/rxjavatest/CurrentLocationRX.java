@@ -86,4 +86,5 @@ public class CurrentLocationRX implements LocationListener{
     public void getLocation(Location location) {
        listener.getLocation(location);
     }
+
 }
